@@ -85,7 +85,7 @@ TABLE read_table(SE_FIC f)
 PLAYER read_players(SE_FIC f)
 {  
 	PLAYER p;
-	p.sign=' ';
+	char sign=' ';
 	p.nb_chips = p.type_bet = p.stop_val = p.obj = 0;
 	SE_readint(f, &p.nb_chips,0);
 	SE_readint(f,&p.type_bet,1);
@@ -98,7 +98,7 @@ PLAYER read_players(SE_FIC f)
 	SE_readint(f, &p.stop_val,0);
 	SE_readint(f, &p.obj,0);
 	  
-	printf("chips = %d ; type_bet = %d %c; stop_val = %d ; obj = %d \n",p.nb_chips, p.type_bet, p.sign, p.stop_val, p.obj);
+	printf("chips = %d ; type_bet = %d %c; stop_val = %d ; obj = %d \n",p.nb_chips, p.type_bet, sign, p.stop_val, p.obj);
 	return p;
   
 }

@@ -1,6 +1,5 @@
 struct player {
 	int nb_chips, type_bet, stop_val, obj;
-	char sign;
 };typedef struct player PLAYER;
 
 struct table {

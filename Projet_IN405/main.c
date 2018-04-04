@@ -7,15 +7,19 @@
 #include <unistd.h>
 #include "main.h"
 #include "read_FILE.h"
+#include "deck.h"
 
 void *game(void* players)
 {
 	PLAYER* p;
+	card_t c;
 	p=(PLAYER*)players;
 	
+	c.next=NULL;
+	c.value=1;
+	
 	printf("p.nb_chips = %d \n", p->nb_chips);
-	
-	
+		
 	pthread_exit(NULL);
 }
 
