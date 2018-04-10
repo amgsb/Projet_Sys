@@ -8,7 +8,7 @@ run: BlackJack
 
 # Edition de liens
 BlackJack: main.o read_FILE.o deck.o
-	gcc main.o read_FILE.o deck.o -o BlackJack -pthread
+	gcc -Wall main.o read_FILE.o deck.o -o BlackJack -pthread
 
 # Compilation
 main.o: main.h read_FILE.h deck.h

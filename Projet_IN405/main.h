@@ -1,5 +1,8 @@
+#include "deck.h"
+
 struct player {
 	int nb_chips, type_bet, stop_val, obj;
+	card_t* c;
 };typedef struct player PLAYER;
 
 struct table {

@@ -129,3 +129,12 @@ PLAYER* read_file(char * path,TABLE *t,PLAYER* info_players)
 	return &info_players[0];
 }
 
+void write_file(char * path,PLAYER* p, card_t* b)
+{
+	SE_FIC f;
+	f=open_file(path, O_CREAT);
+	f=open_file(path, O_WRONLY);
+	printf("");
+	
+	
+}
