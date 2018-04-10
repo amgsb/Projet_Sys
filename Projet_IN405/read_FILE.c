@@ -134,7 +134,7 @@ void write_file(char * path,PLAYER* p, card_t* b)
 	SE_FIC f;
 	f=open_file(path, O_CREAT);
 	f=open_file(path, O_WRONLY);
-	printf("");
+	printf(" ");
 	
 	
 }

@@ -9,16 +9,22 @@
 #include "read_FILE.h"
 #include "deck.h"
 
+void print_all_cards(card_t* c)
+{
+  while (c!= NULL)
+    {
+		printCard (c->value);	
+		c=c->next;
+    }
+}
+
 void *game(void* players)
 {
 	PLAYER* p;
 	
 	p=(PLAYER*)players;
-	printf("BJR p.nb_chips = %d \n", p->nb_chips);
-	
-	printf("\n    \n \n CARTE : ");
-	printCard (p->c->value);
-		
+	printf("Thread \n");
+	print_all_cards(p->c);	
 	pthread_exit(NULL);
 }
 
@@ -52,7 +58,6 @@ card_t* bank(deck_t* d)
 	return b;
 }
 
-
 int main(int argc, char **argv)
 {
 	PLAYER* info_players=NULL;
@@ -70,14 +75,9 @@ int main(int argc, char **argv)
 	for (int i=0; i<t.nb_players; i++)
 	{
 		info_players[i].c=NULL;
+		printf("MAIN: ");
 		info_players[i].c=players_cards(d,info_players[i].c);
-		printf("\n ICI    ");
-		printCard (info_players[i].c->value);
-		printf("    LA \n");
-		info_players[i].c=players_cards(d,info_players[i].c);		
-		printf("\n ICI    ");
-		printCard (info_players[i].c->value);
-		printf("    LA \n");
+		info_players[i].c=players_cards(d,info_players[i].c);
 		pthread_create(&thread,NULL,game,&info_players[i]);	
 		pthread_join(thread,NULL);
 		
