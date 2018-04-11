@@ -134,7 +134,21 @@ void write_file(char * path,PLAYER* p, card_t* b)
 	SE_FIC f;
 	f=open_file(path, O_CREAT);
 	f=open_file(path, O_WRONLY);
-	printf(" ");
+	char nb_chips,type_bet,stop_val,obj;
+	
+	nb_chips =(char)p->nb_chips;						//cast en char
+	type_bet =(char)p->type_bet;
+	stop_val =(char)p->stop_val;
+	obj =(char)p->obj;
+	
+	f.descript,&c,sizeof(char)
+	//printf("EEEEEEEEEEEEEEEEEEp.nb_chips= %d",nb_chips);
+//	write(f.descript,&nb_chips,sizeof(char));
+	
+//	p.nb_chips, p.type_bet, p.stop_val, p.obj;
+	
+	
+	
 	
 	
 }
