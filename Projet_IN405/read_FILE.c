@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "main.h"
-
+// com
 
 SE_FIC open_file(const char * path, int acces)
 {
