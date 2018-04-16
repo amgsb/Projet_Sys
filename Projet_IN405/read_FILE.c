@@ -132,22 +132,47 @@ PLAYER* read_file(char * path,TABLE *t,PLAYER* info_players)
 void write_file(char * path,PLAYER* p, card_t* b)
 {
 	SE_FIC f;
-	f=open_file(path, O_CREAT);
-	f=open_file(path, O_WRONLY);
-	char nb_chips,type_bet,stop_val,obj;
+	int* T = NULL;
+	f.descript=open(path, O_CREAT,0777);
+	if (close(f.descript)==-1) fprintf(stderr,"ERRRRREUR fermeture");
+	f.descript=open(path, O_WRONLY,0777);
 	
-	nb_chips =(char)p->nb_chips;						//cast en char
-	type_bet =(char)p->type_bet;
-	stop_val =(char)p->stop_val;
-	obj =(char)p->obj;
+	int a = p->type_bet;
+	int count = 0;
+	for(int b = p->type_bet;b>=1;count++)
+	{
+		b = b/10;
+	}
+	printf("cont = %d\n",count);
+	T = malloc(sizeof(int)*count);
+		
+	for(int i = 0; i < count;i++)
+	{
+		T[i] = a %10;
+		a = a/10;
+		printf("T[%d]= %d",i, T[i]);	
+	}
+
+	//int nb_chips=5;
+	//char type_bet;				
 	
-	f.descript,&c,sizeof(char)
-	//printf("EEEEEEEEEEEEEEEEEEp.nb_chips= %d",nb_chips);
-//	write(f.descript,&nb_chips,sizeof(char));
+	//type_bet =(char)p->type_bet;
+	//fprintf(stderr,"p->type_bet= %d", p->type_bet);	
+	//stop_val =(char*)p->stop_val;
+	//obj =(char*)p->obj;*/
+	
+	//fprintf(stderr,"EEEEEEEEEEEEEEEEEE nb_chips= %c",nb_chips);
+	char* c;
+	
+	for(int i = count-1; i>1;i--)
+	{
+		*c = '0'+T[i];
+		write(f.descript,c,sizeof(char));
+	}
 	
 //	p.nb_chips, p.type_bet, p.stop_val, p.obj;
-	
-	
+	if (close(f.descript)==-1) fprintf(stderr,"ERRRRREUR fermeture");
+	free(T);
 	
 	
 	
