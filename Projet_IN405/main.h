@@ -2,6 +2,7 @@
 
 struct player {
 	int nb_chips, type_bet, stop_val, obj;
+	int *compt;
 	card_t* c;
 };typedef struct player PLAYER;
 
