@@ -2,7 +2,7 @@
 
 struct player {
 	int nb_chips, type_bet, stop_val, obj;
-	int *compt;
+	int *compt; // Pour les mutex
 	card_t* c;
 };typedef struct player PLAYER;
 

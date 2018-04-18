@@ -51,14 +51,14 @@ card_t* create_cards(deck_t* d,card_t* c)
 card_t* free_cards(card_t* c)
 {
 	 card_t* tmp ;
-  while (tmp->next != NULL)
+  while (c != NULL)
     {
       tmp = c;
       c = c->next;
       free (tmp);
     }
-  free(tmp)
-;  free (c);
+ 
+  free (c);
 	return NULL;
 }
 
@@ -78,9 +78,9 @@ void *game(void* players)
 	int i=0;
 	
 	p=(PLAYER*)players;
-	printf("\n Thread \n");
-	print_all_cards(p->c);	
 	
+	printf("\n Thread \n");
+		
 	int a=sum_hand (p->c);	
 	printf("\n \n a = %d \n \n",a);
 	
@@ -89,18 +89,21 @@ void *game(void* players)
 	
 	while(a<p->stop_val) //mutex pour piocher
 	{
-		pthread_mutex_lock (&mutex);	
+		pthread_mutex_lock (&mutex);
+		//*p->compt=1;
 		pthread_cond_signal (&cond_morecards);
 		a=sum_hand (p->c);	
 		pthread_cond_wait (&cond_cards, &mutex);
 		pthread_mutex_unlock (&mutex);	
+		*p->compt=0;
 	}
 		pthread_cond_signal (&cond_morecards);
-		*p->compt= *p->compt + 1;
+		*p->compt= 2;
 	//comparaison avec la bank
 	// recupere ou pas la mise
 	printf("\n PLAYER : %d",p->nb_chips);
 		print_all_cards(p->c);	
+		printf("\n \n TOTAL CARTES  = %d \n \n",a);
 	printf("\n");
 	
 	if (p->type_bet==200) //mise moitié
@@ -137,29 +140,34 @@ int main(int argc, char **argv)
 	
 	pthread_mutex_init(&mutex,NULL);
 	
-	for (int i=0; i<t.nb_players; i++)
+	for (int i=0; i<t.nb_players ; i++)
 	{
 		info_players[i].compt=&j;
 		info_players[i].c=NULL;
-		info_players[i].c=two_cards(d);
+		//info_players[i].c=two_cards(d);
 		pthread_create(&thread,NULL,game,&info_players[i]);
 		
-			while (j<t.nb_players)
+			while (j!=2)
 			{
 				pthread_mutex_lock (& mutex);
 				pthread_cond_wait (& cond_morecards, & mutex);
 				pthread_cond_signal (& cond_cards);
-				//if(j<t.nb_players) // Pour le dernier signal
+				//if(j==1) // Pour le dernier signal
 					info_players[i].c=create_cards(d,info_players[i].c);
 				pthread_mutex_unlock (& mutex);
 			}	
-		pthread_join(thread,NULL);	
+		j=0;
+		
 	}
 	
 	
+		
+	
 	for(int i=0; i<t.nb_players; i++)
+	{	
 		free_cards(info_players[i].c);
-	fprintf(stderr,"SORTIE");
+		fprintf(stderr,"SORTIE");
+	}
 	
 	removeDeck(d);
 	
