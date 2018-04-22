@@ -190,7 +190,7 @@ decktype_t getDeckType (
 	return deck->type;
 }
 
-void printCard (
+/*void printCard (
 	const int value) {
 	if (value == 52) { printf ("J*"); return; }
 	switch (value % 13) {
@@ -208,7 +208,27 @@ void printCard (
 		case 2: printf ("s"); break;
 		case 3: printf ("h");
 	}
+}*/
+void printCard (
+	const int value) {
+	if (value == 52) { fprintf (stderr,"J*"); return; }
+	switch (value % 13) {
+		case 0: fprintf (stderr,"A"); break;
+		case 9: fprintf (stderr,"X"); break;
+		case 10: fprintf (stderr,"J"); break;
+		case 11: fprintf (stderr,"Q"); break;
+		case 12: fprintf (stderr,"K"); break;
+		default: fprintf (stderr,"%d", (value % 13) + 1);
+	}
+
+	switch (value / 13) {
+		case 0: fprintf (stderr,"c"); break;
+		case 1: fprintf (stderr,"d"); break;
+		case 2: fprintf (stderr,"s"); break;
+		case 3: fprintf (stderr,"h");
+	}
 }
+
 
 void printDrawPile (
 	deck_t * deck) {

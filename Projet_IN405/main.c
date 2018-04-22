@@ -5,23 +5,29 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <semaphore.h>
 #include "main.h"
 #include "read_FILE.h"
 #include "deck.h"
 
 	pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER; 
-	pthread_cond_t cond_morecards=PTHREAD_COND_INITIALIZER;
+	pthread_mutex_t mex=PTHREAD_MUTEX_INITIALIZER; 
 	pthread_cond_t cond_cards=PTHREAD_COND_INITIALIZER;
+	pthread_cond_t cond_morecards=PTHREAD_COND_INITIALIZER;
+	pthread_barrier_t barr;
+	
+	pthread_cond_t att=PTHREAD_COND_INITIALIZER;
+	pthread_cond_t attback=PTHREAD_COND_INITIALIZER;
+	
 	
 
 void print_all_cards(card_t* c)
 {
-  while (c->next!= NULL)
+  while (c!= NULL)
     {
 		printCard (c->value);	
 		c=c->next;
     }
-    printCard (c->value);	
 }
 
 int sum_hand(card_t * c)
@@ -74,47 +80,52 @@ card_t* two_cards(deck_t* d)
 void *game(void* players)
 {
 	PLAYER* p;
-	int bet;
-	int i=0;
-	
 	p=(PLAYER*)players;
+	int sum=0;
+	sum=sum_hand(p->c);
+	p->bet=p->type_bet;
+	//printf("ID= %d   chips = %d ; type_bet = %d; stop_val = %d ; obj = %d \n",p->id,p->nb_chips, p->type_bet, p->stop_val, p->obj);
 	
-	printf("\n Thread \n");
+	
+
+	//while ( ((p->nb_chips) < (p->obj)) && (((p->nb_chips) - (p->bet)) >0))
+	for(int m=0;m<5;m++)
+	{
+		//fprintf(stderr," p->compt= %d &&  p->id= %d----- 1111111111111 \n", *p->compt, p->id);
+		//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- wait broadcast \n", *p->compt, p->id);
+		//pthread_cond_wait(&attback,&mutex);
+		pthread_barrier_wait(&barr);
 		
-	int a=sum_hand (p->c);	
-	printf("\n \n a = %d \n \n",a);
-	
-	//envoyer mise
-	fprintf (stderr,"a= %d    val_stop = %d \n",a,p->stop_val);
-	
-	while(a<p->stop_val) //mutex pour piocher
-	{
-		pthread_mutex_lock (&mutex);
-		//*p->compt=1;
-		pthread_cond_signal (&cond_morecards);
-		a=sum_hand (p->c);	
-		pthread_cond_wait (&cond_cards, &mutex);
-		pthread_mutex_unlock (&mutex);	
-		*p->compt=0;
+		//~ fprintf(stderr," p->compt= %d &&  p->id= %d-----  broadcasted \n", *p->compt, p->id);
+		if ((*p->compt) == (p->id))
+		{
+			//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- 2222222222 \n", *p->compt, p->id);
+		//	fprintf(stderr," sum = %d \n", sum);
+			//fprintf(stderr," stop val = %d \n", p->stop_val);
+			while (sum < (p->stop_val))
+			{
+				
+				pthread_mutex_lock(&mutex);
+				pthread_cond_signal(&cond_cards);
+				//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- 33333 \n", *p->compt, p->id);
+				sum=sum_hand(p->c);
+				fprintf(stderr," SUMMM= %d \n", sum);
+				print_all_cards(p->c);
+				pthread_cond_wait(&cond_morecards,&mutex);
+				pthread_mutex_unlock(&mutex);
+				//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- FIN 33333 \n", *p->compt, p->id);
+			}
+			*p->compt=(*p->compt)+1;
+			
+			if (*p->compt==p->nb_players)*p->compt=0;
+			
+			
+			//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- FIN 2222222222 \n", *p->compt, p->id);
+		}
+		//fprintf(stderr," p->compt= %d &&  p->id= %d----- FIN 1111111111111 \n", *p->compt, p->id);
+		//free cartes
+		//fichier
 	}
-		pthread_cond_signal (&cond_morecards);
-		*p->compt= 2;
-	//comparaison avec la bank
-	// recupere ou pas la mise
-	printf("\n PLAYER : %d",p->nb_chips);
-		print_all_cards(p->c);	
-		printf("\n \n TOTAL CARTES  = %d \n \n",a);
-	printf("\n");
-	
-	if (p->type_bet==200) //mise moitié
-	{
-		p->type_bet=p->type_bet/2;
-	}
-	else if(p->type_bet==10) //mise double
-	{
-		p->type_bet=p->type_bet*2;
-	}
-	fprintf(stderr,"SORTIE THREAD PLAYER : %d \n",p->nb_chips);
 	pthread_exit(NULL);
 }
 
@@ -122,54 +133,58 @@ int main(int argc, char **argv)
 {
 	PLAYER* info_players=NULL;
 	TABLE t;
-	pthread_t thread;
-	pthread_t cards;
+	int i=0;
 	deck_t* d;
 	card_t* b;
 	initDeckLib ();
-	int j=0;
-		
+	pthread_mutex_init(&mutex,NULL);
+	pthread_t thread;
 	info_players=read_file(argv[1],&t,info_players);
+	int h=0;
 	d=initDeck(P52,t.nb_decks);
 	shuffleDeck (d);
+	printDrawPile(d);
 	b=two_cards(d);
 	fprintf(stderr,"\n bankcards = " );
 	print_all_cards(b);
-	int a=sum_hand (b);	
-	printf("\n \n a = %d \n \n",a);
 	
-	pthread_mutex_init(&mutex,NULL);
-	
-	for (int i=0; i<t.nb_players ; i++)
+	pthread_barrier_init(&barr, NULL, t.nb_players);
+		
+	for (int j=0; j<t.nb_players; j++) //Cree tous les Threads
 	{
-		info_players[i].compt=&j;
-		info_players[i].c=NULL;
-		//info_players[i].c=two_cards(d);
-		pthread_create(&thread,NULL,game,&info_players[i]);
 		
-			while (j!=2)
-			{
-				pthread_mutex_lock (& mutex);
-				pthread_cond_wait (& cond_morecards, & mutex);
-				pthread_cond_signal (& cond_cards);
-				//if(j==1) // Pour le dernier signal
-					info_players[i].c=create_cards(d,info_players[i].c);
-				pthread_mutex_unlock (& mutex);
-			}	
-		j=0;
+		info_players[j].compt=&i; //Initialise le compteur à la meme adresse que i;
+		info_players[j].nb_players=t.nb_players; 
+		info_players[j].c=NULL; 
+		info_players[j].c=two_cards(d); //Donne 2 cartes au joueur;
+		info_players[j].id=j; //Donne l'id du joueur
+		pthread_create(&thread,NULL,game,&info_players[j]); //Creation thread un par un
+	}
 		
+	while (i<t.nb_players) 
+	{
+		fprintf(stderr,"là \n");
+		 
+		for (int k=0; k<t.nb_players;k++)
+			pthread_cond_signal(&attback);
+
+		pthread_mutex_lock(&mex);	
+		pthread_cond_wait(&cond_cards,&mutex);	//marche pas
+		fprintf(stderr,"\n PIOOOOOOOOOCHE  i= %d \n",i);
+		info_players[i].c=create_cards(d,info_players[i].c);
+		pthread_cond_signal(&cond_morecards); 
+		fprintf(stderr,"\n FIN PIOOOOOOOOOCHE \n");
+		pthread_mutex_unlock(&mex);		
 	}
 	
-	
-		
-	
-	for(int i=0; i<t.nb_players; i++)
-	{	
-		free_cards(info_players[i].c);
-		fprintf(stderr,"SORTIE");
+	for (int k=0; k<t.nb_players; k++)
+	{
+		pthread_join(thread,NULL);
 	}
 	
+	free(info_players);
 	removeDeck(d);
+
 	
 	return 0;
 }
