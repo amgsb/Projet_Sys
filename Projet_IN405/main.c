@@ -81,15 +81,14 @@ void *game(void* players)
 {
 	PLAYER* p;
 	p=(PLAYER*)players;
-	int sum=0;
-	sum=sum_hand(p->c);
+	p->sum=0;
+	p->sum=sum_hand(p->c);
 	p->bet=p->type_bet;
 	//printf("ID= %d   chips = %d ; type_bet = %d; stop_val = %d ; obj = %d \n",p->id,p->nb_chips, p->type_bet, p->stop_val, p->obj);
 	
 	
 
-	//while ( ((p->nb_chips) < (p->obj)) && (((p->nb_chips) - (p->bet)) >0))
-	for(int m=0;m<5;m++)
+	while ( ((p->nb_chips) < (p->obj)) && (((p->nb_chips) - (p->bet)) >0))
 	{
 		//fprintf(stderr," p->compt= %d &&  p->id= %d----- 1111111111111 \n", *p->compt, p->id);
 		//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- wait broadcast \n", *p->compt, p->id);
@@ -102,14 +101,14 @@ void *game(void* players)
 			//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- 2222222222 \n", *p->compt, p->id);
 		//	fprintf(stderr," sum = %d \n", sum);
 			//fprintf(stderr," stop val = %d \n", p->stop_val);
-			while (sum < (p->stop_val))
+			while (p->sum < (p->stop_val))
 			{
 				
 				pthread_mutex_lock(&mutex);
 				pthread_cond_signal(&cond_cards);
 				//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- 33333 \n", *p->compt, p->id);
-				sum=sum_hand(p->c);
-				fprintf(stderr," SUMMM= %d \n", sum);
+				p->sum=sum_hand(p->c);
+				fprintf(stderr," SUMMM= %d \n", p->sum);
 				print_all_cards(p->c);
 				pthread_cond_wait(&cond_morecards,&mutex);
 				pthread_mutex_unlock(&mutex);
@@ -117,13 +116,10 @@ void *game(void* players)
 			}
 			*p->compt=(*p->compt)+1;
 			
-			if (*p->compt==p->nb_players)*p->compt=0;
-			
-			
+			//if (*p->compt==p->nb_players+1)*p->compt=0;
 			//~ fprintf(stderr," p->compt= %d &&  p->id= %d----- FIN 2222222222 \n", *p->compt, p->id);
 		}
 		//fprintf(stderr," p->compt= %d &&  p->id= %d----- FIN 1111111111111 \n", *p->compt, p->id);
-		//free cartes
 		//fichier
 	}
 	pthread_exit(NULL);
@@ -134,13 +130,13 @@ int main(int argc, char **argv)
 	PLAYER* info_players=NULL;
 	TABLE t;
 	int i=0;
+	int sum_bank=0;
 	deck_t* d;
 	card_t* b;
 	initDeckLib ();
 	pthread_mutex_init(&mutex,NULL);
 	pthread_t thread;
 	info_players=read_file(argv[1],&t,info_players);
-	int h=0;
 	d=initDeck(P52,t.nb_decks);
 	shuffleDeck (d);
 	printDrawPile(d);
@@ -161,7 +157,7 @@ int main(int argc, char **argv)
 		pthread_create(&thread,NULL,game,&info_players[j]); //Creation thread un par un
 	}
 		
-	while (i<t.nb_players) 
+	while (i<t.nb_players+1)  // PLUS 1 !!!!!!!!!!!!!
 	{
 		fprintf(stderr,"là \n");
 		 
@@ -175,6 +171,35 @@ int main(int argc, char **argv)
 		pthread_cond_signal(&cond_morecards); 
 		fprintf(stderr,"\n FIN PIOOOOOOOOOCHE \n");
 		pthread_mutex_unlock(&mex);		
+		
+		if (i==t.nb_players+1)
+		{
+			i=0;
+			while(sum_bank < 16)
+			{
+				b=create_cards(d,b);
+			}
+			while(i<t.nb_players)
+			{
+				if(info_players[i].sum < sum_bank && sum_bank<=21)
+				{
+					info_players[i].nb_chips= info_players[i].nb_chips-info_players[i].bet;
+				}
+				else if (info_players[i].sum > sum_bank && info_players[i].sum < 21 )
+				{
+					info_players[i].nb_chips=info_players[i].nb_chips+info_players[i].bet;
+				}
+				if(info_players[i].sum > 21)
+				{
+					info_players[i].nb_chips= info_players[i].nb_chips-info_players[i].bet;
+				}
+				free_cards(info_players[i].c);
+			}
+			
+		}
+		printf(stderr,"IIIIICCCCCCCCCIIIIIII");
+		shuffleDeck(d);
+		i=0;
 	}
 	
 	for (int k=0; k<t.nb_players; k++)

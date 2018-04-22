@@ -1,7 +1,8 @@
 #include "deck.h"
 
 struct player {
-	int nb_chips, type_bet,bet, stop_val, obj,id,nb_players;
+	int nb_chips, type_bet,bet, stop_val, obj,id,nb_players,sum;
+	
 	int *compt; // Pour les mutex
 	card_t* c;
 };typedef struct player PLAYER;
